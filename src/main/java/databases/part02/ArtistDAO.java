@@ -1,5 +1,10 @@
 package databases.part02;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +49,21 @@ public class ArtistDAO {
          * make tests run against your actual database, which may have unexpected data.
          */
 
+        String valmisLause = "SELECT ArtistId, Name FROM Artist ORDER BY Name ASC";
+
+        try (Connection connection = DriverManager.getConnection(this.connectionString);
+                PreparedStatement preparedStatement = connection.prepareStatement(valmisLause);
+                ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                long id = resultSet.getLong("ArtistId");
+                String name = resultSet.getString("Name");
+                artists.add(new Artist(id, name));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         return artists;
     }
 
@@ -71,6 +91,23 @@ public class ArtistDAO {
          * to the database. You can't "hard code" the connection string, as that would
          * make tests run against your actual database, which may have unexpected data.
          */
+
+        String valmisLause = "SELECT ArtistId, Name FROM Artist WHERE ArtistId = ?";
+
+        try (Connection connection = DriverManager.getConnection(this.connectionString);
+                PreparedStatement preparedStatement = connection.prepareStatement(valmisLause)) {
+
+            preparedStatement.setLong(1, id);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return new Artist(resultSet.getLong("ArtistId"), resultSet.getString("Name"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         return null;
     }
 }
